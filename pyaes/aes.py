@@ -251,11 +251,10 @@ class Counter(object):
        To create a custom counter, you can usually just override the
        increment method.'''
 
-    def __init__(self, nbits, initial_value = 1):
-        if nbits % 8 != 0: raise ValueError('invalid counter length')
+    def __init__(self, initial_value = 1):
 
-        # Convert the value into an array of bytes (nbits / 8) long
-        self._counter = [ ((initial_value >> i) % 256) for i in xrange(nbits - 8, -1, -8) ]
+        # Convert the value into an array of bytes long
+        self._counter = [ ((initial_value >> i) % 256) for i in xrange(128 - 8, -1, -8) ]
 
     value = property(lambda s: s._counter)
 
@@ -384,8 +383,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
     '''AES Cipher Feedback Mode of Operation.
 
        o A stream-cipher, so input does not need to be padded to blocks,
-         but does need to be padded to segment_size bits (if segment_size
-         is 8, then no padding is needed as the segment size is 1 byte)
+         but does need to be padded to segment_size
 
     Also see:
        o https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_feedback_.28CFB.29
@@ -394,10 +392,8 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
 
     name = "Cipher Feedback (CFB)"
 
-    def __init__(self, key, iv, segment_size = 8):
-        if segment_size == 0: segment_size = 8
-        if (segment_size % 8) != 0:
-            raise ValueError('segment_size must be a non-zero multiple of 8')
+    def __init__(self, key, iv, segment_size = 1):
+        if segment_size == 0: segment_size = 1
 
         if iv is None:
             self._shift_register = [ 0 ] * 16
@@ -406,7 +402,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
         else:
           self._shift_register = _string_to_bytes(iv)
 
-        self._segment_bytes = segment_size / 8
+        self._segment_bytes = segment_size
 
         AESBlockModeOfOperation.__init__(self, key)
 
@@ -414,7 +410,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
 
     def encrypt(self, plaintext):
         if len(plaintext) % self._segment_bytes != 0:
-            raise ValueError('plaintext block must be a multiple of segment_size (%s bytes)' % self._segment_bytes)
+            raise ValueError('plaintext block must be a multiple of segment_size')
 
         # Break block into segments
         encrypted = [ ]
@@ -432,7 +428,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
 
     def decrypt(self, ciphertext):
         if len(ciphertext) % self._segment_bytes != 0:
-            raise ValueError('ciphertext block must be a multiple of segment_size (%s bytes)' % self._segment_bytes)
+            raise ValueError('ciphertext block must be a multiple of segment_size')
 
         # Break block into segments
         decrypted = [ ]
@@ -530,7 +526,7 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
         AESBlockModeOfOperation.__init__(self, key)
 
         if counter is None:
-            counter = Counter(nbits = len(key) * 8)
+            counter = Counter()
 
         self._counter = counter
         self._remaining_counter = [ ]

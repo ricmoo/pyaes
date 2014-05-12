@@ -43,8 +43,8 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
                 tt_ksetup += time.time() - t0
 
                 t0 = time.time()
-                aes = AESModeOfOperationCFB(key, iv = iv, segment_size = test * 8)
-                aes2 = AESModeOfOperationCFB(key, iv = iv, segment_size = test * 8)
+                aes = AESModeOfOperationCFB(key, iv = iv, segment_size = test)
+                aes2 = AESModeOfOperationCFB(key, iv = iv, segment_size = test)
                 tt_setup += time.time() - t0
 
             elif mode == 'ECB':
@@ -87,8 +87,8 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
                 tt_ksetup += time.time() - t0
 
                 t0 = time.time()
-                aes = AESModeOfOperationCTR(key, counter = Counter(nbits = 128, initial_value = 0))
-                aes2 = AESModeOfOperationCTR(key, counter = Counter(nbits = 128, initial_value = 0))
+                aes = AESModeOfOperationCTR(key, counter = Counter(initial_value = 0))
+                aes2 = AESModeOfOperationCTR(key, counter = Counter(initial_value = 0))
                 tt_setup += time.time() - t0
 
             count += 1
