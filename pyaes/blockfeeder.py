@@ -24,20 +24,20 @@
 from pyaes.aes import AESBlockModeOfOperation, AESSegmentModeOfOperation, AESStreamModeOfOperation
 from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
 
-# First we add three functions to each of the modes of operations
+# First we inject three functions to each of the modes of operations
 #
-#    _block_an_consume(size)
-#       - Given a size determine how many bytes could be consumed in
+#    _can_consume(size)
+#       - Given a size, determine how many bytes could be consumed in
 #         a single call to either the decrypt or encrypt method
 #
-#    _block_final_encrypt(data)
+#    _final_encrypt(data)
 #       - call and return encrypt on this (last) chunk of data,
 #         padding as necessary; this will always be at least 16
 #         bytes unless the total incoming input was less than 16
 #         bytes
 #
-#    _block_final_decrypt(data)
-#       - same as _blcok_final_encrypt except for decrypt, for
+#    _final_decrypt(data)
+#       - same as _final_encrypt except for decrypt, for
 #         stripping off padding
 #
 
@@ -48,6 +48,7 @@ def _block_can_consume(self, size):
     if size >= 16: return 16
     return 0
 
+# After padding, we may have more than one block
 def _block_final_encrypt(self, data):
     data = append_PKCS7_padding(data)
     if len(data) == 32:
@@ -123,6 +124,7 @@ class BlockFeeder(object):
         if self._buffer is None:
             raise ValueError('already finished feeder')
 
+        # Finalize; process the spare bytes we were keeping
         if not data:
             result = self._final(self._buffer)
             self._buffer = None
@@ -130,6 +132,7 @@ class BlockFeeder(object):
 
         self._buffer += data
 
+        # We keep 16 bytes around so we can determine padding
         result = ''
         while len(self._buffer) > 16:
             can_consume = self._mode._can_consume(len(self._buffer) - 16)
@@ -141,11 +144,15 @@ class BlockFeeder(object):
 
 
 class Encrypter(BlockFeeder):
+    'Accepts bytes of plaintext and returns encrypted ciphertext.'
+
     def __init__(self, mode):
         BlockFeeder.__init__(self, mode, mode.encrypt, mode._final_encrypt)
 
 
 class Decrypter(BlockFeeder):
+    'Accepts bytes of ciphertext and returns decrypted plaintext.'
+
     def __init__(self, mode):
         BlockFeeder.__init__(self, mode, mode.decrypt, mode._final_decrypt)
 
