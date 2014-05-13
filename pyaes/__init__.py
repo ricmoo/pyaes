@@ -46,7 +46,7 @@
 # https://www.dlitz.net/software/pycrypto/
 
 
-VERSION = [1, 0, 0]
+VERSION = [1, 1, 0]
 
 from pyaes.aes import AES, AESModeOfOperationCTR, AESModeOfOperationCBC, AESModeOfOperationCFB, AESModeOfOperationECB, AESModeOfOperationOFB, AESModesOfOperation, Counter
 from pyaes.blockfeeder import Decrypter, Encrypter
