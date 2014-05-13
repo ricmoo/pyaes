@@ -148,7 +148,6 @@ ciphertext = aes.encrypt(plaintext)
 # 'L6\x95\x85\xe4\xd9\xf1\x8a\xfb\xe5\x94X\x80|\x19\xc3'
 print repr(ciphertext)
 
-
 # Since there is no state stored in this mode of operation, it
 # is not necessary to create a new aes object for decryption.
 #aes = pyaes.AESModeOfOperationECB(key)
@@ -158,6 +157,40 @@ decrypted = aes.decrypt(ciphertext)
 print decrypted == plaintext
 ```
 
+
+### BlockFeeder
+
+Since most of the modes of operations require data in specific block-sized or segment-sized blocks, it can be difficult when working with large arbitrary streams or strings of data.
+
+The BlockFeeder class is meant to make life easier for you, by buffering bytes across multiple calls and returning bytes as they are available, as well as padding or stripping the output when finished, if necessary.
+
+```python
+import pyaes
+
+# Any mode of operation can be used; for this example CBC
+key = "This_key_for_demo_purposes_only!"
+iv = "InitializationVe"
+
+ciphertext = ''
+
+# We can encrypt one line at a time, regardles of length
+encrypter = pyaes.Encrypter(pyaes.AESModeOfOperationCBC(key, iv))
+for line in file('/etc/passwd'):
+    ciphertext += encrypter.feed(line)
+
+# Make a final call to flush any remaining bytes and add paddin
+ciphertext += encrypter.feed()
+
+# We can decrypt the cipher text in chunks (here we split it in half)
+decrypter = pyaes.Decrypter(pyaes.AESModeOfOperationCBC(key, iv))
+decrypted = decrypter.feed(ciphertext[:len(ciphertext) / 2])
+decrypted += decrypter.feed(ciphertext[len(ciphertext) / 2:])
+
+# Again, make a final call to flush any remaining bytes and strip padding
+decrypted += decrypter.feed()
+
+print file('/etc/passwd').read() == decrypted
+```
 
 ### AES block cipher
 

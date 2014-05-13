@@ -20,33 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# This is a pure-Python implementation of the AES algorithm and AES common
-# modes of operation.
 
-# See: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
-# See: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation
+def append_PKCS7_padding(data):
+    pad = 16 - (len(data) % 16)
+    return data + pad * chr(pad)
 
+def strip_PKCS7_padding(data):
+    if len(data) % 16 != 0:
+        raise ValueError("invalid length")
 
-# Supported key sizes:
-#   128-bit
-#   192-bit
-#   256-bit
+    pad = ord(data[-1])
 
+    if pad > 16:
+        raise ValueError("invalid padding byte")
 
-# Supported modes of operation:
-#   ECB - Electronic Codebook
-#   CBC - Cipher-Block Chaining
-#   CFB - Cipher Feedback
-#   OFB - Output Feedback
-#   CTR - Counter
+    return data[:-pad]
 
-# See the README.md for API details and general information.
-
-# Also useful, PyCrypto, a crypto library implemented in C with Python bindings:
-# https://www.dlitz.net/software/pycrypto/
-
-
-VERSION = [1, 0, 0]
-
-from pyaes.aes import AES, AESModeOfOperationCTR, AESModeOfOperationCBC, AESModeOfOperationCFB, AESModeOfOperationECB, AESModeOfOperationOFB, AESModesOfOperation, Counter
-from pyaes.blockfeeder import Decrypter, Encrypter
+if __name__ == '__main__':
+    for i in xrange(0, 17):
+        data = 'A' * i
+        padded = append_PKCS7_padding(data)
+        print repr(padded), strip_PKCS7_padding(padded) == data
