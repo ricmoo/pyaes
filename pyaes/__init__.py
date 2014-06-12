@@ -48,5 +48,5 @@
 
 VERSION = [1, 1, 0]
 
-from pyaes.aes import AES, AESModeOfOperationCTR, AESModeOfOperationCBC, AESModeOfOperationCFB, AESModeOfOperationECB, AESModeOfOperationOFB, AESModesOfOperation, Counter
-from pyaes.blockfeeder import Decrypter, Encrypter
+from .aes import AES, AESModeOfOperationCTR, AESModeOfOperationCBC, AESModeOfOperationCFB, AESModeOfOperationECB, AESModeOfOperationOFB, AESModesOfOperation, Counter
+from .blockfeeder import Decrypter, Encrypter
