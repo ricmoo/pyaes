@@ -1,9 +1,40 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Richard Moore
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+
 import sys
 sys.path.append('../pyaes')
 
 from pyaes import *
 
 import os, time
+
+# Python 3 doesn't have xrange and returns bytes from urandom
+try:
+    xrange
+except NameError:
+    xrange = range
+else:
+    pass
 
 # compare against a known working implementation
 from Crypto.Cipher import AES as KAES
@@ -94,16 +125,16 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
             count += 1
 
             t0 = time.time()
-            kenc = "".join(kaes.encrypt(p) for p in plaintext)
+            kenc = "".join(str(kaes.encrypt(p)) for p in plaintext)
             tt_kencrypt += time.time() - t0
 
             t0 = time.time()
-            enc = "".join(aes.encrypt(p) for p in plaintext)
+            enc = "".join(str(aes.encrypt(p)) for p in plaintext)
             tt_encrypt += time.time() - t0
 
             if kenc != enc:
-                print "Test: mode=%s operation=encrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test)
-                print "FOO", repr((kenc, enc, plaintext))
+                print(repr((kenc, enc)))
+                print("Test: mode=%s operation=encrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test))
                 raise Exception('Failed encypt test case')
 
             dec = [ ]
@@ -111,25 +142,25 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
             for p in plaintext:
                 dec.append(kenc[index:index + len(p)])
                 index += len(p)
-            pt = ''.join(p for p in plaintext)
+            pt = ''.join(str(p) for p in plaintext)
 
             t0 = time.time()
-            dt = "".join(kaes2.decrypt(k) for k in dec)
+            dt = "".join(str(kaes2.decrypt(k)) for k in dec)
             tt_kdecrypt += time.time() - t0
 
             t0 = time.time()
-            dt = "".join(aes2.decrypt(k) for k in dec)
+            dt = "".join(str(aes2.decrypt(k)) for k in dec)
             tt_decrypt += time.time() - t0
 
             if pt != dt:
-                print "Test: mode=%s operation=decrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test)
+                print("Test: mode=%s operation=decrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test))
                 raise Exception('Failed decypt test case')
 
     better = (tt_setup + tt_encrypt + tt_decrypt) / (tt_ksetup + tt_kencrypt + tt_kdecrypt)
-    print "Mode: %s" % mode
-    print "  Average time: PyCrypto: encrypt=%fs decrypt=%fs setup=%f" % (tt_kencrypt / count, tt_kdecrypt / count, tt_ksetup / count)
-    print "  Average time: pyaes:    encrypt=%fs decrypt=%fs setup=%f" % (tt_encrypt / count, tt_decrypt / count, tt_setup / count)
-    print "  Native better by: %dx" % better
+    print("Mode: %s" % mode)
+    print("  Average time: PyCrypto: encrypt=%fs decrypt=%fs setup=%f" % (tt_kencrypt / count, tt_kdecrypt / count, tt_ksetup / count))
+    print("  Average time: pyaes:    encrypt=%fs decrypt=%fs setup=%f" % (tt_encrypt / count, tt_decrypt / count, tt_setup / count))
+    print("  Native better by: %dx" % better)
 
-print "All test cases passes!"
+print("All test cases passes!")
 
