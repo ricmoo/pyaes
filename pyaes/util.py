@@ -35,9 +35,3 @@ def strip_PKCS7_padding(data):
         raise ValueError("invalid padding byte")
 
     return data[:-pad]
-
-if __name__ == '__main__':
-    for i in xrange(0, 17):
-        data = 'A' * i
-        padded = append_PKCS7_padding(data)
-        print repr(padded), strip_PKCS7_padding(padded) == data
