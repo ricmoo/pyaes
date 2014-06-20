@@ -8,7 +8,7 @@ OFB) with no dependencies beyond standard Python libraries. See README.md
 for API reference and details.'''
 
 setup(name = 'pyaes',
-      version = '1.1.0',
+      version = '1.2.0',
       description = 'Pure-Python Implementation of the AES block-cipher and common modes of operation',
       long_description = LONG_DESCRIPTION,
       author = 'Richard Moore',

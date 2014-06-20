@@ -4,6 +4,16 @@ pyaes
 A pure-Python implmentation of the AES block cipher algorithm and the common modes of operation (CBC, CFB, CTR, ECB and OFB).
 
 
+Features
+--------
+
+* Supports all AES key sizes
+* Supports all AES common modes
+* Pure-Python (no external dependancies)
+* BlockFeeder API allows streams to easily be encrypted and decrypted
+* Python 2.x and 3.x support (make sure you pass in bytes(), not strings for Python 3)
+
+
 API
 ---
 
@@ -229,7 +239,9 @@ Performance
 
 There is a test case provided in _/tests/test-aes.py_ which does some basic performance testing (its primary purpose is moreso as a regression test).
 
-Based on that test, this library is about 30x slower than [PyCrypto](https://www.dlitz.net/software/pycrypto/) for CBC, ECB and OFB; about 80x slower for CFB; and 300x slower for CTR.
+Based on that test, in **CPython**, this library is about 30x slower than [PyCrypto](https://www.dlitz.net/software/pycrypto/) for CBC, ECB and OFB; about 80x slower for CFB; and 300x slower for CTR.
+
+Based on that same test, in **Pypy**, this library is about 4x slower than [PyCrypto](https://www.dlitz.net/software/pycrypto/) for CBC, ECB and OFB; about 12x slower for CFB; and 19x slower for CTR.
 
 The PyCrypto documentation makes reference to the counter call being responsible for the speed problems of the counter (CTR) mode of operation, which is why they use a specially optimized counter. I will investigate this problem further in the future.
 
