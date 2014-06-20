@@ -30,20 +30,23 @@ import random
 import pyaes
 from pyaes.blockfeeder import Decrypter, Encrypter
 
+from pyaes.util import to_bufferable
+
+
 key = os.urandom(32)
 
 plaintext = os.urandom(1000)
 
 for mode_name in pyaes.AESModesOfOperation:
     mode = pyaes.AESModesOfOperation[mode_name]
-    print mode.name
+    print(mode.name)
 
     kw = dict(key = key)
     if mode_name in ('cbc', 'cfb', 'ofb'):
         kw['iv'] = os.urandom(16)
 
     encrypter = Encrypter(mode(**kw))
-    ciphertext = ''
+    ciphertext = to_bufferable('')
 
     # Feed the encrypter random number of bytes at a time
     index = 0
@@ -55,7 +58,7 @@ for mode_name in pyaes.AESModesOfOperation:
     ciphertext += encrypter.feed(None)
 
     decrypter = Decrypter(mode(**kw))
-    decrypted = ''
+    decrypted = to_bufferable('')
 
     # Feed the decrypter random number of bytes at a time
     index = 0
@@ -68,4 +71,4 @@ for mode_name in pyaes.AESModesOfOperation:
 
     passed = decrypted == plaintext
     cipher_length = len(ciphertext)
-    print "  cipher-length=%(cipher_length)s passed=%(passed)s" % locals()
+    print("  cipher-length=%(cipher_length)s passed=%(passed)s" % locals())

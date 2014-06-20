@@ -125,36 +125,28 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
             count += 1
 
             t0 = time.time()
-            kenc = "".join(str(kaes.encrypt(p)) for p in plaintext)
+            kenc = [kaes.encrypt(p) for p in plaintext]
             tt_kencrypt += time.time() - t0
 
             t0 = time.time()
-            enc = "".join(str(aes.encrypt(p)) for p in plaintext)
+            enc = [aes.encrypt(p) for p in plaintext]
             tt_encrypt += time.time() - t0
 
             if kenc != enc:
-                print(repr((kenc, enc)))
                 print("Test: mode=%s operation=encrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test))
-                raise Exception('Failed encypt test case')
-
-            dec = [ ]
-            index = 0
-            for p in plaintext:
-                dec.append(kenc[index:index + len(p)])
-                index += len(p)
-            pt = ''.join(str(p) for p in plaintext)
+                raise Exception('Failed encypt test case (%s)' % mode)
 
             t0 = time.time()
-            dt = "".join(str(kaes2.decrypt(k)) for k in dec)
+            dt1 = [kaes2.decrypt(k) for k in kenc]
             tt_kdecrypt += time.time() - t0
 
             t0 = time.time()
-            dt = "".join(str(aes2.decrypt(k)) for k in dec)
+            dt2 = [aes2.decrypt(k) for k in kenc]
             tt_decrypt += time.time() - t0
 
-            if pt != dt:
+            if plaintext != dt2:
                 print("Test: mode=%s operation=decrypt key_size=%d text_length=%d trial=%d" % (mode, key_size, len(plaintext), test))
-                raise Exception('Failed decypt test case')
+                raise Exception('Failed decypt test case (%s)' % mode)
 
     better = (tt_setup + tt_encrypt + tt_decrypt) / (tt_ksetup + tt_kencrypt + tt_kdecrypt)
     print("Mode: %s" % mode)

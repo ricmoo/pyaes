@@ -64,8 +64,32 @@ def _compact_word(word):
 def _string_to_bytes(text):
     return list(ord(c) for c in text)
 
-def _bytes_to_string(text):
-    return "".join(chr(v) for v in text)
+def _bytes_to_string(binary):
+    return "".join(chr(b) for b in binary)
+
+def _concat_list(a, b):
+    return a + b
+
+
+# Python 3 compatibility
+try:
+    xrange
+except Exception:
+    xrange = range
+
+    # Python 3 supports bytes, which is already an array of integers
+    def _string_to_bytes(text):
+        if isinstance(text, bytes):
+            return text
+        return [ord(c) for c in text]
+
+    # In Python 3, we return bytes
+    def _bytes_to_string(binary):
+        return bytes(binary)
+
+    # Python 3 cannot concatenate a list onto a bytes, so we bytes-ify it first
+    def _concat_list(a, b):
+        return a + bytes(b)
 
 
 # Based *largely* on the Rijndael implementation
@@ -118,15 +142,15 @@ class AES(object):
         self._Kd = [[0] * 4 for i in xrange(rounds + 1)]
 
         round_key_count = (rounds + 1) * 4
-        KC = len(key) / 4
+        KC = len(key) // 4
 
         # Convert the key into ints
         tk = [ struct.unpack('>i', key[i:i + 4])[0] for i in xrange(0, len(key), 4) ]
 
         # Copy values into round key arrays
         for i in xrange(0, KC):
-            self._Ke[i / 4][i % 4] = tk[i]
-            self._Kd[rounds - (i / 4)][i % 4] = tk[i]
+            self._Ke[i // 4][i % 4] = tk[i]
+            self._Kd[rounds - (i // 4)][i % 4] = tk[i]
 
         # Key expansion (fips-197 section 5.2)
         rconpointer = 0
@@ -147,23 +171,23 @@ class AES(object):
 
             # Key expansion for 256-bit keys is "slightly different" (fips-197)
             else:
-                for i in xrange(1, KC / 2):
+                for i in xrange(1, KC // 2):
                     tk[i] ^= tk[i - 1]
-                tt = tk[KC / 2 - 1]
+                tt = tk[KC // 2 - 1]
 
-                tk[KC / 2] ^= (self.S[ tt        & 0xFF]        ^
-                              (self.S[(tt >>  8) & 0xFF] <<  8) ^
-                              (self.S[(tt >> 16) & 0xFF] << 16) ^
-                              (self.S[(tt >> 24) & 0xFF] << 24))
+                tk[KC // 2] ^= (self.S[ tt        & 0xFF]        ^
+                               (self.S[(tt >>  8) & 0xFF] <<  8) ^
+                               (self.S[(tt >> 16) & 0xFF] << 16) ^
+                               (self.S[(tt >> 24) & 0xFF] << 24))
 
-                for i in xrange(KC / 2 + 1, KC):
-                    tk[i] ^= tk[i-1]
+                for i in xrange(KC // 2 + 1, KC):
+                    tk[i] ^= tk[i - 1]
 
             # Copy values into round key arrays
             j = 0
             while j < KC and t < round_key_count:
-                self._Ke[t / 4][t % 4] = tk[j]
-                self._Kd[rounds - (t / 4)][t % 4] = tk[j]
+                self._Ke[t // 4][t % 4] = tk[j]
+                self._Kd[rounds - (t // 4)][t % 4] = tk[j]
                 j += 1
                 t += 1
 
@@ -317,13 +341,15 @@ class AESModeOfOperationECB(AESBlockModeOfOperation):
         if len(plaintext) != 16:
             raise ValueError('plaintext block must be 16 bytes')
 
-        return _bytes_to_string(self._aes.encrypt(_string_to_bytes(plaintext)))
+        plaintext = _string_to_bytes(plaintext)
+        return _bytes_to_string(self._aes.encrypt(plaintext))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != 16:
             raise ValueError('ciphertext block must be 16 bytes')
 
-        return _bytes_to_string(self._aes.decrypt(_string_to_bytes(ciphertext)))
+        ciphertext = _string_to_bytes(ciphertext)
+        return _bytes_to_string(self._aes.decrypt(ciphertext))
 
 
 
@@ -362,7 +388,8 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
         if len(plaintext) != 16:
             raise ValueError('plaintext block must be 16 bytes')
 
-        precipherblock = [ (ord(p) ^ l) for (p, l) in zip(plaintext, self._last_cipherblock) ]
+        plaintext = _string_to_bytes(plaintext)
+        precipherblock = [ (p ^ l) for (p, l) in zip(plaintext, self._last_cipherblock) ]
         self._last_cipherblock = self._aes.encrypt(precipherblock)
 
         return _bytes_to_string(self._last_cipherblock)
@@ -372,10 +399,10 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
             raise ValueError('ciphertext block must be 16 bytes')
 
         cipherblock = _string_to_bytes(ciphertext)
-        plaintext = "".join([ chr(p ^ l) for (p, l) in zip(self._aes.decrypt(cipherblock), self._last_cipherblock) ])
+        plaintext = [ (p ^ l) for (p, l) in zip(self._aes.decrypt(cipherblock), self._last_cipherblock) ]
         self._last_cipherblock = cipherblock
 
-        return plaintext
+        return _bytes_to_string(plaintext)
 
 
 
@@ -412,15 +439,17 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
         if len(plaintext) % self._segment_bytes != 0:
             raise ValueError('plaintext block must be a multiple of segment_size')
 
+        plaintext = _string_to_bytes(plaintext)
+
         # Break block into segments
         encrypted = [ ]
         for i in xrange(0, len(plaintext), self._segment_bytes):
             plaintext_segment = plaintext[i: i + self._segment_bytes]
             xor_segment = self._aes.encrypt(self._shift_register)[:len(plaintext_segment)]
-            cipher_segment = [ (ord(p) ^ x) for (p, x) in zip(plaintext_segment, xor_segment) ]
+            cipher_segment = [ (p ^ x) for (p, x) in zip(plaintext_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = self._shift_register[len(cipher_segment):] + cipher_segment
+            self._shift_register = _concat_list(self._shift_register[len(cipher_segment):], cipher_segment)
 
             encrypted.extend(cipher_segment)
 
@@ -430,15 +459,17 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
         if len(ciphertext) % self._segment_bytes != 0:
             raise ValueError('ciphertext block must be a multiple of segment_size')
 
+        ciphertext = _string_to_bytes(ciphertext)
+
         # Break block into segments
         decrypted = [ ]
         for i in xrange(0, len(ciphertext), self._segment_bytes):
-            cipher_segment = _string_to_bytes(ciphertext[i: i + self._segment_bytes])
+            cipher_segment = ciphertext[i: i + self._segment_bytes]
             xor_segment = self._aes.encrypt(self._shift_register)[:len(cipher_segment)]
             plaintext_segment = [ (p ^ x) for (p, x) in zip(cipher_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = self._shift_register[len(cipher_segment):] + cipher_segment
+            self._shift_register = _concat_list(self._shift_register[len(cipher_segment):], cipher_segment)
 
             decrypted.extend(plaintext_segment)
 
@@ -476,13 +507,13 @@ class AESModeOfOperationOFB(AESStreamModeOfOperation):
 
     def encrypt(self, plaintext):
         encrypted = [ ]
-        for c in plaintext:
+        for p in _string_to_bytes(plaintext):
             if len(self._remaining_block) == 0:
                 self._remaining_block = self._aes.encrypt(self._last_precipherblock)
                 self._last_precipherblock = [ ]
             precipherbyte = self._remaining_block.pop(0)
             self._last_precipherblock.append(precipherbyte)
-            cipherbyte = ord(c) ^ precipherbyte
+            cipherbyte = p ^ precipherbyte
             encrypted.append(cipherbyte)
 
         return _bytes_to_string(encrypted)
@@ -536,7 +567,9 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
             self._remaining_counter += self._aes.encrypt(self._counter.value)
             self._counter.increment()
 
-        encrypted = [ (ord(p) ^ c) for (p, c) in zip(plaintext, self._remaining_counter) ]
+        plaintext = _string_to_bytes(plaintext)
+
+        encrypted = [ (p ^ c) for (p, c) in zip(plaintext, self._remaining_counter) ]
         self._remaining_counter = self._remaining_counter[len(encrypted):]
 
         return _bytes_to_string(encrypted)
@@ -547,4 +580,10 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
 
 
 # Simple lookup table for each mode
-AESModesOfOperation = dict(ctr = AESModeOfOperationCTR, cbc = AESModeOfOperationCBC, cfb = AESModeOfOperationCFB, ecb = AESModeOfOperationECB, ofb = AESModeOfOperationOFB)
+AESModesOfOperation = dict(
+    ctr = AESModeOfOperationCTR,
+    cbc = AESModeOfOperationCBC,
+    cfb = AESModeOfOperationCFB,
+    ecb = AESModeOfOperationECB,
+    ofb = AESModeOfOperationOFB,
+)

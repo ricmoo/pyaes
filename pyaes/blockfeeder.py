@@ -21,8 +21,9 @@
 # THE SOFTWARE.
 
 
-from pyaes.aes import AESBlockModeOfOperation, AESSegmentModeOfOperation, AESStreamModeOfOperation
-from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
+from .aes import AESBlockModeOfOperation, AESSegmentModeOfOperation, AESStreamModeOfOperation
+from .util import append_PKCS7_padding, strip_PKCS7_padding, to_bufferable
+
 
 # First we inject three functions to each of the modes of operations
 #
@@ -71,12 +72,14 @@ def _segment_can_consume(self, size):
 
 # CFB can handle a non-segment-sized block at the end using the remaining cipherblock
 def _segment_final_encrypt(self, data):
-    padded = data + (chr(0) * (self.segment_bytes - (len(data) % self.segment_bytes)))
+    faux_padding = (chr(0) * (self.segment_bytes - (len(data) % self.segment_bytes)))
+    padded = data + to_bufferable(faux_padding)
     return self.encrypt(padded)[:len(data)]
 
 # CFB can handle a non-segment-sized block at the end using the remaining cipherblock
 def _segment_final_decrypt(self, data):
-    padded = data + (chr(0) * (self.segment_bytes - (len(data) % self.segment_bytes)))
+    faux_padding = (chr(0) * (self.segment_bytes - (len(data) % self.segment_bytes)))
+    padded = data + to_bufferable(faux_padding)
     return self.decrypt(padded)[:len(data)]
 
 AESSegmentModeOfOperation._can_consume = _segment_can_consume
@@ -111,7 +114,7 @@ class BlockFeeder(object):
         self._mode = mode
         self._feed = feed
         self._final = final
-        self._buffer = ""
+        self._buffer = to_bufferable("")
 
     def feed(self, data = None):
         '''Provide bytes to encrypt (or decrypt), returning any bytes
@@ -130,10 +133,10 @@ class BlockFeeder(object):
             self._buffer = None
             return result
 
-        self._buffer += data
+        self._buffer += to_bufferable(data)
 
         # We keep 16 bytes around so we can determine padding
-        result = ''
+        result = to_bufferable('')
         while len(self._buffer) > 16:
             can_consume = self._mode._can_consume(len(self._buffer) - 16)
             if can_consume == 0: break

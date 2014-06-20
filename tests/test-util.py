@@ -20,41 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# Why to_bufferable?
-# Python 3 is very different from Python 2.x when it comes to strings of text
-# and strings of bytes; in Python 3, strings of bytes do not exist, instead to
-# represent arbitrary binary data, we must use the "bytes" object. This method
-# ensures the object behaves as we need it to.
 
-def to_bufferable(binary):
-    return binary
+import sys
+sys.path.append('../pyaes')
 
-def _get_byte(c):
-    return ord(c)
+from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
 
-try:
-    xrange
-except:
-
-    def to_bufferable(binary):
-        if isinstance(binary, bytes):
-            return binary
-        return bytes(ord(b) for b in binary)
-
-    def _get_byte(c):
-        return c
-
-def append_PKCS7_padding(data):
-    pad = 16 - (len(data) % 16)
-    return data + to_bufferable(chr(pad) * pad)
-
-def strip_PKCS7_padding(data):
-    if len(data) % 16 != 0:
-        raise ValueError("invalid length")
-
-    pad = _get_byte(data[-1])
-
-    if pad > 16:
-        raise ValueError("invalid padding byte")
-
-    return data[:-pad]
+for i in xrange(0, 17):
+    data = 'A' * i
+    padded = append_PKCS7_padding(data)
+    print repr(padded), strip_PKCS7_padding(padded) == data
