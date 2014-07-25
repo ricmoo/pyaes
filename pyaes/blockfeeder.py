@@ -159,3 +159,32 @@ class Decrypter(BlockFeeder):
     def __init__(self, mode):
         BlockFeeder.__init__(self, mode, mode.decrypt, mode._final_decrypt)
 
+
+# 8kb blocks
+BLOCK_SIZE = (1 << 13)
+
+def _feed_stream(feeder, in_stream, out_stream, block_size = BLOCK_SIZE):
+    'Uses feeder to read and convert from in_stream and write to out_stream.'
+
+    while True:
+        chunk = in_stream.read(BLOCK_SIZE)
+        if not chunk:
+            break
+        converted = feeder.feed(chunk)
+        out_stream.write(converted)
+    converted = feeder.feed()
+    out_stream.write(converted)
+
+
+def encrypt_stream(mode, in_stream, out_stream, block_size = BLOCK_SIZE):
+    'Encrypts a stream of bytes from in_stream to out_stream using mode.'
+
+    encrypter = Encrypter(mode)
+    _feed_stream(encrypter, in_stream, out_stream, block_size)
+
+
+def decrypt_stream(mode, in_stream, out_stream, block_size = BLOCK_SIZE):
+    'Decrypts a stream of bytes from in_stream to out_stream using mode.'
+
+    decrypter = Decrypter(mode)
+    _feed_stream(decrypter, in_stream, out_stream, block_size)

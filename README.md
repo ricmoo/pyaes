@@ -202,6 +202,33 @@ decrypted += decrypter.feed()
 print file('/etc/passwd').read() == decrypted
 ```
 
+### Stream Feeder
+
+This is meant to make it even easier to encrypt and decrypt streams and large files.
+
+```python
+import pyaes
+
+# Any mode of operation can be used; for this example CTR
+key = "This_key_for_demo_purposes_only!"
+
+# Create the mode of operation to encrypt with
+mode = pyaes.AESModeOfOperationCTR(key)
+
+# The input and output files
+file_in = file('/etc/passwd')
+file_out = file('/tmp/encrypted.bin', 'wb')
+
+# Encrypt the data as a stream, the file is read in 8kb chunks, be default
+pyaes.encrypt_stream(mode, file_in, file_out)
+
+# Close the files
+file_in.close()
+file_out.close()
+```
+
+Decrypting is identical, except you would use `pyaes.decrypt_stream`, and the encrypted file would be the `file_in` and target for decryption the `file_out`.
+
 ### AES block cipher
 
 Generally you should use one of the modes of operation above. This may however be useful for experimenting with a custom mode of operation or dealing with encrypted blocks.
@@ -233,6 +260,75 @@ decrypted = aes.decrypt(ciphertext)
 # True
 print decrypted == plaintext_bytes
 ```
+
+What is a key?
+--------------
+
+This seems to be a point of confusion for many people new to using encryption. You can think of the key as the *"password"*. However, these algorithms require the *"password"* to be a specific length.
+
+With AES, there are three possible key lengths, 16-bytes, 24-bytes or 32-bytes. When you create an AES object, the key size is automatically detected, so it is important to pass in a key of the correct length.
+
+Often, you wish to provide a password of arbitrary length, for example, something easy to remember or write down. In these cases, you must come up with a way to transform the password into a key, of a specific length. A **Password-Based Key Derivation Function** (PBKDF) is an algorithm designed for this exact purpose.
+
+Here is an example, using the popular (possibly obsolete?) *crypt* PBKDF:
+
+```
+# See: https://www.dlitz.net/software/python-pbkdf2/
+import pbkdf2
+
+password = "HelloWorld"
+
+# The crypt PBKDF returns a 48-byte string
+key = pbkdf2.crypt(password)
+
+# A 16-byte, 24-byte and 32-byte key, respectively
+key_16 = key[:16]
+key_24 = key[:24]
+key_32 = key[:32]
+```
+
+The [scrypt](https://github.com/ricmoo/pyscrypt) PBKDF is intentially slow, to make it more difficult to brute-force guess a password:
+
+```
+# See: https://github.com/ricmoo/pyscrypt
+import pyscrypt
+
+password = "HelloWorld"
+
+# Salt is required, and prevents Rainbow Table attacks
+salt = "SeaSalt"
+
+# N, r, and p are parameters to specify how difficult it should be to
+# generate a key; bigger numbers take longer and more memory
+N = 1024
+r = 1
+p = 1
+
+# A 16-byte, 24-byte and 32-byte key, respectively; the scrypt algorithm takes
+# a 6-th parameter, indicating key length
+key_16 = pyscrypt.hash(password, salt, N, r, p, 16)
+key_24 = pyscrypt.hash(password, salt, N, r, p, 24)
+key_32 = pyscrypt.hash(password, salt, N, r, p, 32)
+```
+
+Another possibility, is to use a hashing function, such as SHA256 to hash the password, but this method may be vulnerable to [Rainbow Attacks](http://en.wikipedia.org/wiki/Rainbow_table), unless you use a [salt](http://en.wikipedia.org/wiki/Salt_(cryptography)).
+
+```python
+import hashlib
+
+password = "HelloWorld"
+
+# The SHA256 hash algorithm returns a 32-byte string
+hashed = hashlib.sha256(password).digest()
+
+# A 16-byte, 24-byte and 32-byte key, respectively
+key_16 = hashed[:16]
+key_24 = hashed[:24]
+key_32 = hashed
+```
+
+
+
 
 Performance
 -----------
