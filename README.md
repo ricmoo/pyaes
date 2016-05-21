@@ -349,7 +349,7 @@ FAQ
 
 The short answer, *why not?*
 
-The longer answer, is for m [pyscrypt](https://github.com/ricmoo/pyscrypt) library. I required a pure-Python AES implementation that supported 256-bit keys with the counter (CTR) mode of operation. After searching, I found several implementations, but all were missing CTR or only supported 128 bit keys. After all the work of learning AES inside and out to implement the library, it was only a marginal amount of extra work to library-ify a more general solution. So, *why not?*
+The longer answer, is for my [pyscrypt](https://github.com/ricmoo/pyscrypt) library. I required a pure-Python AES implementation that supported 256-bit keys with the counter (CTR) mode of operation. After searching, I found several implementations, but all were missing CTR or only supported 128 bit keys. After all the work of learning AES inside and out to implement the library, it was only a marginal amount of extra work to library-ify a more general solution. So, *why not?*
 
 #### How do I get a question I have added?
 
