@@ -167,7 +167,7 @@ def _feed_stream(feeder, in_stream, out_stream, block_size = BLOCK_SIZE):
     'Uses feeder to read and convert from in_stream and write to out_stream.'
 
     while True:
-        chunk = in_stream.read(BLOCK_SIZE)
+        chunk = in_stream.read(block_size)
         if not chunk:
             break
         converted = feeder.feed(chunk)
