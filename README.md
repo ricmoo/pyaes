@@ -287,7 +287,7 @@ key_24 = key[:24]
 key_32 = key[:32]
 ```
 
-The [scrypt](https://github.com/ricmoo/pyscrypt) PBKDF is intentially slow, to make it more difficult to brute-force guess a password:
+The [scrypt](https://github.com/ricmoo/pyscrypt) PBKDF is intentionally slow, to make it more difficult to brute-force guess a password:
 
 ```
 # See: https://github.com/ricmoo/pyscrypt
@@ -360,4 +360,4 @@ E-mail me at pyaes@ricmoo.com with any questions, suggestions, comments, et cete
 
 Umm... Ok? :-)
 
-_Bitcoin_  - `1LNdGsYtZXWeiKjGba7T997qvzrWqLXLma`
+_Bitcoin_  - `18UDs4qV1shu2CgTS2tKojhCtM69kpnWg9`
