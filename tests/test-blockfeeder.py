@@ -72,3 +72,45 @@ for mode_name in pyaes.AESModesOfOperation:
     passed = decrypted == plaintext
     cipher_length = len(ciphertext)
     print("  cipher-length=%(cipher_length)s passed=%(passed)s" % locals())
+
+# Test block modes of operation with no padding
+plaintext = os.urandom(1024)
+
+for mode_name in ['ecb', 'cbc']:
+    mode = pyaes.AESModesOfOperation[mode_name]
+    print(mode.name + ' (no padding)')
+
+    kw = dict(key = key)
+    if mode_name == 'cbc':
+        kw['iv'] = os.urandom(16)
+
+    encrypter = Encrypter(mode(**kw), padding = pyaes.PADDING_NONE)
+    ciphertext = to_bufferable('')
+
+    # Feed the encrypter random number of bytes at a time
+    index = 0
+    while index < len(plaintext):
+        length = random.randint(1, 128)
+        if index + length > len(plaintext): length = len(plaintext) - index
+        ciphertext += encrypter.feed(plaintext[index: index + length])
+        index += length
+    ciphertext += encrypter.feed(None)
+
+    if len(ciphertext) != len(plaintext):
+        print('  failed to encrypt with correct padding')
+
+    decrypter = Decrypter(mode(**kw), padding = pyaes.PADDING_NONE)
+    decrypted = to_bufferable('')
+
+    # Feed the decrypter random number of bytes at a time
+    index = 0
+    while index < len(ciphertext):
+        length = random.randint(1, 128)
+        if index + length > len(ciphertext): length = len(ciphertext) - index
+        decrypted += decrypter.feed(ciphertext[index: index + length])
+        index += length
+    decrypted += decrypter.feed(None)
+
+    passed = decrypted == plaintext
+    cipher_length = len(ciphertext)
+    print("  cipher-length=%(cipher_length)s passed=%(passed)s" % locals())
