@@ -27,9 +27,15 @@ sys.path.append('../pyaes')
 import os
 import random
 
+try:
+    from StringIO import StringIO
+except:
+    import io
+    StringIO = io.BytesIO
+
 import pyaes
 from pyaes.blockfeeder import Decrypter, Encrypter
-
+from pyaes import decrypt_stream, encrypt_stream
 from pyaes.util import to_bufferable
 
 
@@ -110,6 +116,32 @@ for mode_name in ['ecb', 'cbc']:
         decrypted += decrypter.feed(ciphertext[index: index + length])
         index += length
     decrypted += decrypter.feed(None)
+
+    passed = decrypted == plaintext
+    cipher_length = len(ciphertext)
+    print("  cipher-length=%(cipher_length)s passed=%(passed)s" % locals())
+
+plaintext = os.urandom(1000)
+
+for mode_name in pyaes.AESModesOfOperation:
+    mode = pyaes.AESModesOfOperation[mode_name]
+    print(mode.name + ' (stream operations)')
+
+    kw = dict(key = key)
+    if mode_name in ('cbc', 'cfb', 'ofb'):
+        kw['iv'] = os.urandom(16)
+
+    moo = mode(**kw)
+    output = StringIO()
+    pyaes.encrypt_stream(moo, StringIO(plaintext), output)
+    output.seek(0)
+    ciphertext = output.read()
+
+    moo = mode(**kw)
+    output = StringIO()
+    pyaes.decrypt_stream(moo, StringIO(ciphertext), output)
+    output.seek(0)
+    decrypted = output.read()
 
     passed = decrypted == plaintext
     cipher_length = len(ciphertext)

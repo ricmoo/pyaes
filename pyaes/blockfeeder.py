@@ -216,12 +216,12 @@ def _feed_stream(feeder, in_stream, out_stream, block_size = BLOCK_SIZE):
 def encrypt_stream(mode, in_stream, out_stream, block_size = BLOCK_SIZE, padding = PADDING_DEFAULT):
     'Encrypts a stream of bytes from in_stream to out_stream using mode.'
 
-    encrypter = Encrypter(mode)
-    _feed_stream(encrypter, in_stream, out_stream, block_size, padding)
+    encrypter = Encrypter(mode, padding = padding)
+    _feed_stream(encrypter, in_stream, out_stream, block_size)
 
 
 def decrypt_stream(mode, in_stream, out_stream, block_size = BLOCK_SIZE, padding = PADDING_DEFAULT):
     'Decrypts a stream of bytes from in_stream to out_stream using mode.'
 
-    decrypter = Decrypter(mode)
-    _feed_stream(decrypter, in_stream, out_stream, block_size, padding)
+    decrypter = Decrypter(mode, padding = padding)
+    _feed_stream(decrypter, in_stream, out_stream, block_size)
