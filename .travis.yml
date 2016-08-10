@@ -7,6 +7,6 @@ python:
   - "3.4"
   - "3.5"
 install:
-  - python setup.py develop
+  - python setup.py install --user
 script:
   - python tests/test-aes.py
