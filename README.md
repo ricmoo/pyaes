@@ -1,5 +1,6 @@
 pyaes
 =====
+[![Build Status](https://travis-ci.org/stephengroat/pyaes.svg?branch=master)](https://travis-ci.org/stephengroat/pyaes)
 
 A pure-Python implementation of the AES block cipher algorithm and the common modes of operation (CBC, CFB, CTR, ECB and OFB).
 
