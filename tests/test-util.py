@@ -22,7 +22,8 @@
 
 
 import sys
-sys.path.append('../pyaes')
+sys.path.append('./')
+sys.path.append('../')
 
 from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
 
