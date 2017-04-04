@@ -1,7 +1,7 @@
 pyaes
 =====
 
-A pure-Python implmentation of the AES block cipher algorithm and the common modes of operation (CBC, CFB, CTR, ECB and OFB).
+A pure-Python implementation of the AES block cipher algorithm and the common modes of operation (CBC, CFB, CTR, ECB and OFB).
 
 
 Features
@@ -9,7 +9,7 @@ Features
 
 * Supports all AES key sizes
 * Supports all AES common modes
-* Pure-Python (no external dependancies)
+* Pure-Python (no external dependencies)
 * BlockFeeder API allows streams to easily be encrypted and decrypted
 * Python 2.x and 3.x support (make sure you pass in bytes(), not strings for Python 3)
 
@@ -34,7 +34,7 @@ To generate keys from simple-to-remember passwords, consider using a _password-b
 
 ### Common Modes of Operation
 
-There are many modes of operations, each with various pros and cons. In general though, the **CBC** and **CTR** modes are recommended. The **ECB is NOT recommended.**, and is included primarilty for completeness.
+There are many modes of operations, each with various pros and cons. In general though, the **CBC** and **CTR** modes are recommended. The **ECB is NOT recommended.**, and is included primarily for completeness.
 
 Each of the following examples assumes the following key:
 ```python
@@ -92,7 +92,7 @@ ciphertext = aes.encrypt(plaintext)
 print repr(ciphertext)
 
 
-# The cipher-block chaining mode of operation maintains state, so 
+# The cipher-block chaining mode of operation maintains state, so
 # decryption requires a new instance be created
 aes = pyaes.AESModeOfOperationCBC(key, iv = iv)
 decrypted = aes.decrypt(ciphertext)
@@ -116,7 +116,7 @@ ciphertext = aes.encrypt(plaintext)
 print repr(ciphertext)
 
 
-# The cipher-block chaining mode of operation maintains state, so 
+# The cipher-block chaining mode of operation maintains state, so
 # decryption requires a new instance be created
 aes = pyaes.AESModeOfOperationCFB(key, iv = iv, segment_size = 8)
 decrypted = aes.decrypt(ciphertext)
