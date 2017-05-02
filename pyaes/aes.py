@@ -145,7 +145,7 @@ class AES(object):
         KC = len(key) // 4
 
         # Convert the key into ints
-        tk = [ struct.unpack('>i', key[i:i + 4])[0] for i in xrange(0, len(key), 4) ]
+        tk = [ struct.unpack('>i', bytes(key[i:i + 4]))[0] for i in xrange(0, len(key), 4) ]
 
         # Copy values into round key arrays
         for i in xrange(0, KC):
