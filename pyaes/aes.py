@@ -137,7 +137,7 @@ class AES(object):
             tk[0] ^= ((self.S[(tt >> 16) & 0xFF] << 24) ^
                       (self.S[(tt >>  8) & 0xFF] << 16) ^
                       (self.S[ tt        & 0xFF] <<  8) ^
-                       self.S[(tt >> 24) & 0xFF]        ^
+                       self.S[(tt >> 24)       ]        ^
                       (self.rcon[rconpointer] << 24))
             rconpointer += 1
 
@@ -154,7 +154,7 @@ class AES(object):
                 tk[KC // 2] ^= (self.S[ tt        & 0xFF]        ^
                                (self.S[(tt >>  8) & 0xFF] <<  8) ^
                                (self.S[(tt >> 16) & 0xFF] << 16) ^
-                               (self.S[(tt >> 24) & 0xFF] << 24))
+                               (self.S[(tt >> 24)       ] << 24))
 
                 for i in xrange(KC // 2 + 1, KC):
                     tk[i] ^= tk[i - 1]
@@ -171,7 +171,7 @@ class AES(object):
         for r in xrange(1, rounds):
             for j in xrange(0, 4):
                 tt = self._Kd[r][j]
-                self._Kd[r][j] = (self.U1[(tt >> 24) & 0xFF] ^
+                self._Kd[r][j] = (self.U1[(tt >> 24)       ] ^
                                   self.U2[(tt >> 16) & 0xFF] ^
                                   self.U3[(tt >>  8) & 0xFF] ^
                                   self.U4[ tt        & 0xFF])
@@ -192,7 +192,7 @@ class AES(object):
         # Apply round transforms
         for r in xrange(1, rounds):
             for i in xrange(0, 4):
-                a[i] = (self.T1[(t[ i          ] >> 24) & 0xFF] ^
+                a[i] = (self.T1[(t[ i          ] >> 24)       ] ^
                         self.T2[(t[(i + s1) % 4] >> 16) & 0xFF] ^
                         self.T3[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T4[ t[(i + s3) % 4]        & 0xFF] ^
@@ -203,7 +203,7 @@ class AES(object):
         result = [ ]
         for i in xrange(0, 4):
             tt = self._Ke[rounds][i]
-            result.append((self.S[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
+            result.append((self.S[(t[ i          ] >> 24)       ] ^ (tt >> 24)) & 0xFF)
             result.append((self.S[(t[(i + s1) % 4] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((self.S[(t[(i + s2) % 4] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((self.S[ t[(i + s3) % 4]        & 0xFF] ^  tt       ) & 0xFF)
@@ -226,7 +226,7 @@ class AES(object):
         # Apply round transforms
         for r in xrange(1, rounds):
             for i in xrange(0, 4):
-                a[i] = (self.T5[(t[ i          ] >> 24) & 0xFF] ^
+                a[i] = (self.T5[(t[ i          ] >> 24)       ] ^
                         self.T6[(t[(i + s1) % 4] >> 16) & 0xFF] ^
                         self.T7[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T8[ t[(i + s3) % 4]        & 0xFF] ^
@@ -237,7 +237,7 @@ class AES(object):
         result = [ ]
         for i in xrange(0, 4):
             tt = self._Kd[rounds][i]
-            result.append((self.Si[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
+            result.append((self.Si[(t[ i          ] >> 24)       ] ^ (tt >> 24)) & 0xFF)
             result.append((self.Si[(t[(i + s1) % 4] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((self.Si[(t[(i + s2) % 4] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((self.Si[ t[(i + s3) % 4]        & 0xFF] ^  tt       ) & 0xFF)
