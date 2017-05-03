@@ -22,7 +22,7 @@
 
 
 import sys
-sys.path.append('../pyaes')
+sys.path.append('..')
 
 from pyaes import *
 
@@ -33,8 +33,6 @@ try:
     xrange
 except NameError:
     xrange = range
-else:
-    pass
 
 # compare against a known working implementation
 from Crypto.Cipher import AES as KAES
@@ -141,7 +139,7 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
             tt_kdecrypt += time.time() - t0
 
             t0 = time.time()
-            dt2 = [aes2.decrypt(k) for k in kenc]
+            dt2 = [aes2.decrypt(k) for k in enc]
             tt_decrypt += time.time() - t0
 
             if plaintext != dt2:

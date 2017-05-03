@@ -22,19 +22,17 @@
 
 
 import sys
-sys.path.append('../pyaes')
+sys.path.append('..')
 
 from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
 
-byte = 'A'
+byte = b'A'
 
 # Python 3 compatibility
 try:
     xrange
-except Exception:
+except NameError:
     xrange = range
-    # convert sample byte to bytes type, so that data = byte * i yields bytes, not str
-    byte = bytes(byte, 'utf-8')
 
 for i in xrange(0, 17):
     data = byte * i

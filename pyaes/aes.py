@@ -51,7 +51,6 @@
 # See the README.md for API details and general information.
 
 
-import copy
 import struct
 
 __all__ = ["AES", "AESModeOfOperationCTR", "AESModeOfOperationCBC", "AESModeOfOperationCFB",
@@ -74,7 +73,7 @@ def _concat_list(a, b):
 # Python 3 compatibility
 try:
     xrange
-except Exception:
+except NameError:
     xrange = range
 
     # Python 3 supports bytes, which is already an array of integers
@@ -221,7 +220,7 @@ class AES(object):
                         self.T3[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T4[ t[(i + s3) % 4]        & 0xFF] ^
                         self._Ke[r][i])
-            t = copy.copy(a)
+            t = a[:]
 
         # The last round is special
         result = [ ]
@@ -255,7 +254,7 @@ class AES(object):
                         self.T7[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T8[ t[(i + s3) % 4]        & 0xFF] ^
                         self._Kd[r][i])
-            t = copy.copy(a)
+            t = a[:]
 
         # The last round is special
         result = [ ]

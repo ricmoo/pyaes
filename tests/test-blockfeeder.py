@@ -22,20 +22,18 @@
 
 
 import sys
-sys.path.append('../pyaes')
+sys.path.append('..')
 
 import os
 import random
 
 try:
-    from StringIO import StringIO
-except:
-    import io
-    StringIO = io.BytesIO
+    from StringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
 
 import pyaes
 from pyaes.blockfeeder import Decrypter, Encrypter
-from pyaes import decrypt_stream, encrypt_stream
 from pyaes.util import to_bufferable
 
 
@@ -132,14 +130,14 @@ for mode_name in pyaes.AESModesOfOperation:
         kw['iv'] = os.urandom(16)
 
     moo = mode(**kw)
-    output = StringIO()
-    pyaes.encrypt_stream(moo, StringIO(plaintext), output)
+    output = BytesIO()
+    pyaes.encrypt_stream(moo, BytesIO(plaintext), output)
     output.seek(0)
     ciphertext = output.read()
 
     moo = mode(**kw)
-    output = StringIO()
-    pyaes.decrypt_stream(moo, StringIO(ciphertext), output)
+    output = BytesIO()
+    pyaes.decrypt_stream(moo, BytesIO(ciphertext), output)
     output.seek(0)
     decrypted = output.read()
 
