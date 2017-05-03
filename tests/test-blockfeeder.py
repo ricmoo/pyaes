@@ -34,7 +34,6 @@ except ImportError:
 
 import pyaes
 from pyaes.blockfeeder import Decrypter, Encrypter
-from pyaes.util import to_bufferable
 
 
 key = os.urandom(32)
@@ -50,7 +49,7 @@ for mode_name in pyaes.AESModesOfOperation:
         kw['iv'] = os.urandom(16)
 
     encrypter = Encrypter(mode(**kw))
-    ciphertext = to_bufferable('')
+    ciphertext = b''
 
     # Feed the encrypter random number of bytes at a time
     index = 0
@@ -62,7 +61,7 @@ for mode_name in pyaes.AESModesOfOperation:
     ciphertext += encrypter.feed(None)
 
     decrypter = Decrypter(mode(**kw))
-    decrypted = to_bufferable('')
+    decrypted = b''
 
     # Feed the decrypter random number of bytes at a time
     index = 0
@@ -89,7 +88,7 @@ for mode_name in ['ecb', 'cbc']:
         kw['iv'] = os.urandom(16)
 
     encrypter = Encrypter(mode(**kw), padding = pyaes.PADDING_NONE)
-    ciphertext = to_bufferable('')
+    ciphertext = b''
 
     # Feed the encrypter random number of bytes at a time
     index = 0
@@ -104,7 +103,7 @@ for mode_name in ['ecb', 'cbc']:
         print('  failed to encrypt with correct padding')
 
     decrypter = Decrypter(mode(**kw), padding = pyaes.PADDING_NONE)
-    decrypted = to_bufferable('')
+    decrypted = b''
 
     # Feed the decrypter random number of bytes at a time
     index = 0
