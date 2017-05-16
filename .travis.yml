@@ -7,9 +7,7 @@ python:
   - "3.4"
   - "3.5"
 install:
-  - python setup.py install --user
+  - pip install .
   - pip install pycrypto
 script:
-  - python tests/test-aes.py
-  - python tests/test-blockfeeder.py
-  - python tests/test-util.py
+  - py.test
