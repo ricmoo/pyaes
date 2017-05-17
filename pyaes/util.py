@@ -29,7 +29,7 @@
 
 def append_PKCS7_padding(data):
     pad = 16 - (len(data) % 16)
-    return data + bytes([pad]) * pad
+    return data + bytes(bytearray([pad])) * pad
 
 def strip_PKCS7_padding(data):
     if len(data) % 16 != 0:

@@ -318,14 +318,14 @@ class AESModeOfOperationECB(AESBlockModeOfOperation):
             raise ValueError('plaintext block must be 16 bytes')
 
         plaintext = bytearray(plaintext)
-        return bytes(self._aes.encrypt(plaintext))
+        return bytes(bytearray(self._aes.encrypt(plaintext)))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != 16:
             raise ValueError('ciphertext block must be 16 bytes')
 
         ciphertext = bytearray(ciphertext)
-        return bytes(self._aes.decrypt(ciphertext))
+        return bytes(bytearray(self._aes.decrypt(ciphertext)))
 
 
 
@@ -368,7 +368,7 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
         precipherblock = [ (p ^ l) for (p, l) in zip(plaintext, self._last_cipherblock) ]
         self._last_cipherblock = self._aes.encrypt(precipherblock)
 
-        return bytes(self._last_cipherblock)
+        return bytes(bytearray(self._last_cipherblock))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != 16:
@@ -378,7 +378,7 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
         plaintext = [ (p ^ l) for (p, l) in zip(self._aes.decrypt(cipherblock), self._last_cipherblock) ]
         self._last_cipherblock = cipherblock
 
-        return bytes(plaintext)
+        return bytes(bytearray(plaintext))
 
 
 
@@ -425,11 +425,11 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
             cipher_segment = [ (p ^ x) for (p, x) in zip(plaintext_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = self._shift_register[len(cipher_segment):] + bytes(cipher_segment)
+            self._shift_register = self._shift_register[len(cipher_segment):] + bytearray(cipher_segment)
 
             encrypted.extend(cipher_segment)
 
-        return bytes(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) % self._segment_bytes != 0:
@@ -445,11 +445,11 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
             plaintext_segment = [ (p ^ x) for (p, x) in zip(cipher_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = self._shift_register[len(cipher_segment):] + bytes(cipher_segment)
+            self._shift_register = self._shift_register[len(cipher_segment):] + bytearray(cipher_segment)
 
             decrypted.extend(plaintext_segment)
 
-        return bytes(decrypted)
+        return bytes(bytearray(decrypted))
 
 
 
@@ -492,7 +492,7 @@ class AESModeOfOperationOFB(AESStreamModeOfOperation):
             cipherbyte = p ^ precipherbyte
             encrypted.append(cipherbyte)
 
-        return bytes(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, ciphertext):
         # AES-OFB is symetric
@@ -548,7 +548,7 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
         encrypted = [ (p ^ c) for (p, c) in zip(plaintext, self._remaining_counter) ]
         self._remaining_counter = self._remaining_counter[len(encrypted):]
 
-        return bytes(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, crypttext):
         # AES-CTR is symetric
