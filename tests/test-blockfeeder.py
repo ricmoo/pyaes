@@ -146,3 +146,36 @@ for mode_name in pyaes.AESModesOfOperation:
     passed = decrypted == plaintext
     cipher_length = len(ciphertext)
     print("  cipher-length=%(cipher_length)s passed=%(passed)s" % locals())
+
+# Issue #15
+# https://github.com/ricmoo/pyaes/issues/15
+# @TODO: These tests need a severe overhaul; they should use deterministic input, keys and IVs...
+def TestIssue15():
+    print('Issue #15')
+
+    key = b"abcdefghijklmnop"
+    iv = b"0123456789012345"
+    encrypter = pyaes.Encrypter(pyaes.AESModeOfOperationCBC(key, iv))
+
+    plaintext = b"Hello World!!!!!"
+
+    ciphertext = to_bufferable('')
+
+    ciphertext += encrypter.feed(plaintext)
+    ciphertext += encrypter.feed('')
+    ciphertext += encrypter.feed(plaintext)
+    ciphertext += encrypter.feed(None)
+    expected = b'(Ob\xe5\xae"\xdc\xb0\x84\xc5\x04\x04GQ\xd8.\x0e4\xd2b\xc1\x15\xe5\x11M\xfc\x9a\xd2\xd5\xc8xP\x00[\xd57\x92\x01\xbb\xc42\x18\xbc\xbf\x1ay\x19P'
+
+    decrypter = pyaes.Decrypter(pyaes.AESModeOfOperationCBC(key, iv))
+
+    output = to_bufferable('')
+
+    output += decrypter.feed('')
+    output += decrypter.feed(ciphertext)
+    output += decrypter.feed('')
+    output += decrypter.feed(None)
+
+    print("  passed=%(passed)s" % dict(passed = (ciphertext == expected and output == (plaintext + plaintext))))
+
+TestIssue15()

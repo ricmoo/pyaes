@@ -165,7 +165,7 @@ class BlockFeeder(object):
             raise ValueError('already finished feeder')
 
         # Finalize; process the spare bytes we were keeping
-        if not data:
+        if data is None:
             result = self._final(self._buffer, self._padding)
             self._buffer = None
             return result
