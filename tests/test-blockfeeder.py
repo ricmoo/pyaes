@@ -22,7 +22,8 @@
 
 
 import sys
-sys.path.append('../pyaes')
+sys.path.append('./')
+sys.path.append('../')
 
 import os
 import random
