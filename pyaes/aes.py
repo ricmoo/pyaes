@@ -51,7 +51,6 @@
 # See the README.md for API details and general information.
 
 
-import copy
 import struct
 
 __all__ = ["AES", "AESModeOfOperationCTR", "AESModeOfOperationCBC", "AESModeOfOperationCFB",
@@ -61,35 +60,12 @@ __all__ = ["AES", "AESModeOfOperationCTR", "AESModeOfOperationCBC", "AESModeOfOp
 def _compact_word(word):
     return (word[0] << 24) | (word[1] << 16) | (word[2] << 8) | word[3]
 
-def _string_to_bytes(text):
-    return list(ord(c) for c in text)
-
-def _bytes_to_string(binary):
-    return "".join(chr(b) for b in binary)
-
-def _concat_list(a, b):
-    return a + b
-
 
 # Python 3 compatibility
 try:
     xrange
-except Exception:
+except NameError:
     xrange = range
-
-    # Python 3 supports bytes, which is already an array of integers
-    def _string_to_bytes(text):
-        if isinstance(text, bytes):
-            return text
-        return [ord(c) for c in text]
-
-    # In Python 3, we return bytes
-    def _bytes_to_string(binary):
-        return bytes(binary)
-
-    # Python 3 cannot concatenate a list onto a bytes, so we bytes-ify it first
-    def _concat_list(a, b):
-        return a + bytes(b)
 
 
 # Based *largely* on the Rijndael implementation
@@ -161,7 +137,7 @@ class AES(object):
             tk[0] ^= ((self.S[(tt >> 16) & 0xFF] << 24) ^
                       (self.S[(tt >>  8) & 0xFF] << 16) ^
                       (self.S[ tt        & 0xFF] <<  8) ^
-                       self.S[(tt >> 24) & 0xFF]        ^
+                       self.S[(tt >> 24)       ]        ^
                       (self.rcon[rconpointer] << 24))
             rconpointer += 1
 
@@ -178,7 +154,7 @@ class AES(object):
                 tk[KC // 2] ^= (self.S[ tt        & 0xFF]        ^
                                (self.S[(tt >>  8) & 0xFF] <<  8) ^
                                (self.S[(tt >> 16) & 0xFF] << 16) ^
-                               (self.S[(tt >> 24) & 0xFF] << 24))
+                               (self.S[(tt >> 24)       ] << 24))
 
                 for i in xrange(KC // 2 + 1, KC):
                     tk[i] ^= tk[i - 1]
@@ -195,7 +171,7 @@ class AES(object):
         for r in xrange(1, rounds):
             for j in xrange(0, 4):
                 tt = self._Kd[r][j]
-                self._Kd[r][j] = (self.U1[(tt >> 24) & 0xFF] ^
+                self._Kd[r][j] = (self.U1[(tt >> 24)       ] ^
                                   self.U2[(tt >> 16) & 0xFF] ^
                                   self.U3[(tt >>  8) & 0xFF] ^
                                   self.U4[ tt        & 0xFF])
@@ -216,18 +192,18 @@ class AES(object):
         # Apply round transforms
         for r in xrange(1, rounds):
             for i in xrange(0, 4):
-                a[i] = (self.T1[(t[ i          ] >> 24) & 0xFF] ^
+                a[i] = (self.T1[(t[ i          ] >> 24)       ] ^
                         self.T2[(t[(i + s1) % 4] >> 16) & 0xFF] ^
                         self.T3[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T4[ t[(i + s3) % 4]        & 0xFF] ^
                         self._Ke[r][i])
-            t = copy.copy(a)
+            t = a[:]
 
         # The last round is special
         result = [ ]
         for i in xrange(0, 4):
             tt = self._Ke[rounds][i]
-            result.append((self.S[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
+            result.append((self.S[(t[ i          ] >> 24)       ] ^ (tt >> 24)) & 0xFF)
             result.append((self.S[(t[(i + s1) % 4] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((self.S[(t[(i + s2) % 4] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((self.S[ t[(i + s3) % 4]        & 0xFF] ^  tt       ) & 0xFF)
@@ -250,18 +226,18 @@ class AES(object):
         # Apply round transforms
         for r in xrange(1, rounds):
             for i in xrange(0, 4):
-                a[i] = (self.T5[(t[ i          ] >> 24) & 0xFF] ^
+                a[i] = (self.T5[(t[ i          ] >> 24)       ] ^
                         self.T6[(t[(i + s1) % 4] >> 16) & 0xFF] ^
                         self.T7[(t[(i + s2) % 4] >>  8) & 0xFF] ^
                         self.T8[ t[(i + s3) % 4]        & 0xFF] ^
                         self._Kd[r][i])
-            t = copy.copy(a)
+            t = a[:]
 
         # The last round is special
         result = [ ]
         for i in xrange(0, 4):
             tt = self._Kd[rounds][i]
-            result.append((self.Si[(t[ i           ] >> 24) & 0xFF] ^ (tt >> 24)) & 0xFF)
+            result.append((self.Si[(t[ i          ] >> 24)       ] ^ (tt >> 24)) & 0xFF)
             result.append((self.Si[(t[(i + s1) % 4] >> 16) & 0xFF] ^ (tt >> 16)) & 0xFF)
             result.append((self.Si[(t[(i + s2) % 4] >>  8) & 0xFF] ^ (tt >>  8)) & 0xFF)
             result.append((self.Si[ t[(i + s3) % 4]        & 0xFF] ^  tt       ) & 0xFF)
@@ -341,15 +317,15 @@ class AESModeOfOperationECB(AESBlockModeOfOperation):
         if len(plaintext) != 16:
             raise ValueError('plaintext block must be 16 bytes')
 
-        plaintext = _string_to_bytes(plaintext)
-        return _bytes_to_string(self._aes.encrypt(plaintext))
+        plaintext = bytearray(plaintext)
+        return bytes(bytearray(self._aes.encrypt(plaintext)))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != 16:
             raise ValueError('ciphertext block must be 16 bytes')
 
-        ciphertext = _string_to_bytes(ciphertext)
-        return _bytes_to_string(self._aes.decrypt(ciphertext))
+        ciphertext = bytearray(ciphertext)
+        return bytes(bytearray(self._aes.decrypt(ciphertext)))
 
 
 
@@ -380,7 +356,7 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
         elif len(iv) != 16:
             raise ValueError('initialization vector must be 16 bytes')
         else:
-            self._last_cipherblock = _string_to_bytes(iv)
+            self._last_cipherblock = bytearray(iv)
 
         AESBlockModeOfOperation.__init__(self, key)
 
@@ -388,21 +364,21 @@ class AESModeOfOperationCBC(AESBlockModeOfOperation):
         if len(plaintext) != 16:
             raise ValueError('plaintext block must be 16 bytes')
 
-        plaintext = _string_to_bytes(plaintext)
+        plaintext = bytearray(plaintext)
         precipherblock = [ (p ^ l) for (p, l) in zip(plaintext, self._last_cipherblock) ]
         self._last_cipherblock = self._aes.encrypt(precipherblock)
 
-        return _bytes_to_string(self._last_cipherblock)
+        return bytes(bytearray(self._last_cipherblock))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) != 16:
             raise ValueError('ciphertext block must be 16 bytes')
 
-        cipherblock = _string_to_bytes(ciphertext)
+        cipherblock = bytearray(ciphertext)
         plaintext = [ (p ^ l) for (p, l) in zip(self._aes.decrypt(cipherblock), self._last_cipherblock) ]
         self._last_cipherblock = cipherblock
 
-        return _bytes_to_string(plaintext)
+        return bytes(bytearray(plaintext))
 
 
 
@@ -427,7 +403,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
         elif len(iv) != 16:
             raise ValueError('initialization vector must be 16 bytes')
         else:
-          self._shift_register = _string_to_bytes(iv)
+          self._shift_register = bytearray(iv)
 
         self._segment_bytes = segment_size
 
@@ -439,7 +415,7 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
         if len(plaintext) % self._segment_bytes != 0:
             raise ValueError('plaintext block must be a multiple of segment_size')
 
-        plaintext = _string_to_bytes(plaintext)
+        plaintext = bytearray(plaintext)
 
         # Break block into segments
         encrypted = [ ]
@@ -449,17 +425,17 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
             cipher_segment = [ (p ^ x) for (p, x) in zip(plaintext_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = _concat_list(self._shift_register[len(cipher_segment):], cipher_segment)
+            self._shift_register = self._shift_register[len(cipher_segment):] + bytearray(cipher_segment)
 
             encrypted.extend(cipher_segment)
 
-        return _bytes_to_string(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, ciphertext):
         if len(ciphertext) % self._segment_bytes != 0:
             raise ValueError('ciphertext block must be a multiple of segment_size')
 
-        ciphertext = _string_to_bytes(ciphertext)
+        ciphertext = bytearray(ciphertext)
 
         # Break block into segments
         decrypted = [ ]
@@ -469,11 +445,11 @@ class AESModeOfOperationCFB(AESSegmentModeOfOperation):
             plaintext_segment = [ (p ^ x) for (p, x) in zip(cipher_segment, xor_segment) ]
 
             # Shift the top bits out and the ciphertext in
-            self._shift_register = _concat_list(self._shift_register[len(cipher_segment):], cipher_segment)
+            self._shift_register = self._shift_register[len(cipher_segment):] + bytearray(cipher_segment)
 
             decrypted.extend(plaintext_segment)
 
-        return _bytes_to_string(decrypted)
+        return bytes(bytearray(decrypted))
 
 
 
@@ -499,7 +475,7 @@ class AESModeOfOperationOFB(AESStreamModeOfOperation):
         elif len(iv) != 16:
             raise ValueError('initialization vector must be 16 bytes')
         else:
-          self._last_precipherblock = _string_to_bytes(iv)
+          self._last_precipherblock = bytearray(iv)
 
         self._remaining_block = [ ]
 
@@ -507,7 +483,7 @@ class AESModeOfOperationOFB(AESStreamModeOfOperation):
 
     def encrypt(self, plaintext):
         encrypted = [ ]
-        for p in _string_to_bytes(plaintext):
+        for p in bytearray(plaintext):
             if len(self._remaining_block) == 0:
                 self._remaining_block = self._aes.encrypt(self._last_precipherblock)
                 self._last_precipherblock = [ ]
@@ -516,7 +492,7 @@ class AESModeOfOperationOFB(AESStreamModeOfOperation):
             cipherbyte = p ^ precipherbyte
             encrypted.append(cipherbyte)
 
-        return _bytes_to_string(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, ciphertext):
         # AES-OFB is symetric
@@ -567,12 +543,12 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
             self._remaining_counter += self._aes.encrypt(self._counter.value)
             self._counter.increment()
 
-        plaintext = _string_to_bytes(plaintext)
+        plaintext = bytearray(plaintext)
 
         encrypted = [ (p ^ c) for (p, c) in zip(plaintext, self._remaining_counter) ]
         self._remaining_counter = self._remaining_counter[len(encrypted):]
 
-        return _bytes_to_string(encrypted)
+        return bytes(bytearray(encrypted))
 
     def decrypt(self, crypttext):
         # AES-CTR is symetric
