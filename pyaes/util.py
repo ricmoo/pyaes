@@ -54,7 +54,11 @@ def strip_PKCS7_padding(data):
 
     pad = _get_byte(data[-1])
 
-    if pad > 16:
+    if pad < 1 or pad > 16:
         raise ValueError("invalid padding byte")
+
+    for x in range(2, pad + 1):
+        if data[-x] != data[-1]:
+            raise ValueError("invalid PKCS7 padding")
 
     return data[:-pad]
