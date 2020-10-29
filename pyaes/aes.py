@@ -55,7 +55,7 @@ import copy
 import struct
 
 __all__ = ["AES", "AESModeOfOperationCTR", "AESModeOfOperationCBC", "AESModeOfOperationCFB",
-           "AESModeOfOperationECB", "AESModeOfOperationOFB", "AESModesOfOperation", "Counter"]
+           "AESModeOfOperationECB", "AESModeOfOperationOFB", "AESModeOfOperationGCM", "AESModesOfOperation", "Counter"]
 
 
 def _compact_word(word):
@@ -578,6 +578,15 @@ class AESModeOfOperationCTR(AESStreamModeOfOperation):
         # AES-CTR is symetric
         return self.encrypt(crypttext)
 
+class AESModeOfOperationGCM(AESModeOfOperationCTR):
+    name = "GCM"
+
+    def __init__(self, key, iv):
+        iv = iv + b"\x00\x00\x00\x02"
+        iv_int = 0
+        for i in xrange(0, len(iv), 4):
+            iv_int = (iv_int << 32) + struct.unpack('>I', iv[i:i+4])[0]
+        AESModeOfOperationCTR.__init__(self, key, counter=Counter(iv_int))
 
 # Simple lookup table for each mode
 AESModesOfOperation = dict(
@@ -586,4 +595,5 @@ AESModesOfOperation = dict(
     cfb = AESModeOfOperationCFB,
     ecb = AESModeOfOperationECB,
     ofb = AESModeOfOperationOFB,
+    gcm = AESModeOfOperationGCM,
 )

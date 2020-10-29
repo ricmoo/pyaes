@@ -39,7 +39,7 @@ else:
 # compare against a known working implementation
 from Crypto.Cipher import AES as KAES
 from Crypto.Util import Counter as KCounter
-for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
+for mode in [ 'CBC', 'CTR', 'GCM', 'CFB', 'ECB', 'OFB' ]:
 
     (tt_ksetup, tt_kencrypt, tt_kdecrypt) = (0.0, 0.0, 0.0)
     (tt_setup, tt_encrypt, tt_decrypt) = (0.0, 0.0, 0.0)
@@ -122,6 +122,23 @@ for mode in [ 'CBC', 'CTR',  'CFB', 'ECB', 'OFB' ]:
                 aes2 = AESModeOfOperationCTR(key, counter = Counter(initial_value = 0))
                 tt_setup += time.time() - t0
 
+            elif mode == 'GCM':
+                text_length = [None, 3, 16, 127, 128, 129, 1500, 10000, 100000, 10001, 10002, 10003, 10004, 10005, 10006, 10007, 10008][test]
+                if test < 6:
+                    plaintext = [ os.urandom(text_length) ]
+                else:
+                    plaintext = [ os.urandom(text_length) for x in xrange(0, test) ]
+                iv = os.urandom(12)
+
+                t0 = time.time()
+                kaes = KAES.new(key, KAES.MODE_GCM, iv)
+                kaes2 = KAES.new(key, KAES.MODE_GCM, iv)
+                tt_ksetup += time.time() - t0
+
+                t0 = time.time()
+                aes = AESModeOfOperationGCM(key, iv)
+                aes2 = AESModeOfOperationGCM(key, iv)
+                tt_setup += time.time() - t0
             count += 1
 
             t0 = time.time()
