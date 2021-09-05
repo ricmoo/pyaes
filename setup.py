@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import find_packages, setup
 
 LONG_DESCRIPTION = '''A pure-Python implementation of the AES (FIPS-197)
 block-cipher algorithm and common modes of operation (CBC, CFB, CTR, ECB,
@@ -14,7 +14,7 @@ setup(name = 'pyaes',
       author = 'Richard Moore',
       author_email = 'pyaes@ricmoo.com',
       url = 'https://github.com/ricmoo/pyaes',
-      packages = ['pyaes'],
+      packages = find_packages(), 
       classifiers = [
           'Topic :: Security :: Cryptography',
           'License :: OSI Approved :: MIT License',
