@@ -26,16 +26,17 @@
 # represent arbitrary binary data, we must use the "bytes" object. This method
 # ensures the object behaves as we need it to.
 
+import sys
+
+is_python3 = sys.version_info[0] == 3
+
 def to_bufferable(binary):
     return binary
 
 def _get_byte(c):
     return ord(c)
 
-try:
-    xrange
-except:
-
+if is_python3:
     def to_bufferable(binary):
         if isinstance(binary, bytes):
             return binary
