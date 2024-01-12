@@ -20,9 +20,9 @@ jobs:
 
             - name: Test
               run: |
-                  python test-aes.py
-                  python test-blockfeeder.py
-                  python test-util.py
+                  python tests/test-aes.py
+                  python tests/test-blockfeeder.py
+                  python tests/test-util.py
 
     test-27:
         container:
@@ -34,6 +34,6 @@ jobs:
 
             - name: Test
               run: |
-                  python test-aes.py
-                  python test-blockfeeder.py
-                  python test-util.py
+                  python tests/test-aes.py
+                  python tests/test-blockfeeder.py
+                  python tests/test-util.py
