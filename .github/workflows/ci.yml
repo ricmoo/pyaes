@@ -24,7 +24,7 @@ jobs:
                   python test-blockfeeder.py
                   python test-util.py
 
-    test-2.7:
+    test-27:
         container:
           image: python:2.7
         runs-on: ubuntu-latest
