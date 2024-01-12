@@ -24,14 +24,14 @@
 import sys
 sys.path.append('../pyaes')
 
+is_python3 = sys.version_info[0] == 3
+
 from pyaes.util import append_PKCS7_padding, strip_PKCS7_padding
 
 byte = 'A'
 
 # Python 3 compatibility
-try:
-    xrange
-except Exception:
+if is_python3:
     xrange = range
     # convert sample byte to bytes type, so that data = byte * i yields bytes, not str
     byte = bytes(byte, 'utf-8')
@@ -39,4 +39,7 @@ except Exception:
 for i in xrange(0, 17):
     data = byte * i
     padded = append_PKCS7_padding(data)
-    print(repr(padded), strip_PKCS7_padding(padded) == data)
+    stripped = strip_PKCS7_padding(padded)
+    if stripped != data:
+        raise Exception('strip_PKCS7_padding(padded) != data')
+    print(repr(padded), stripped == data)

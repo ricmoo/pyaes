@@ -29,7 +29,7 @@ import random
 
 try:
     from StringIO import StringIO
-except:
+except ImportError:
     import io
     StringIO = io.BytesIO
 
